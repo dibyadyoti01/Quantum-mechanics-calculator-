@@ -1,0 +1,122 @@
+import { useState } from 'react'
+
+export default function QuantumMechanicsCalculator() {
+  const [deltaX, setDeltaX] = useState<number | ''>('')
+  const [deltaP, setDeltaP] = useState<number | ''>('')
+  const [matrixA, setMatrixA] = useState<string>('')
+  const [matrixB, setMatrixB] = useState<string>('')
+  const [heisenbergResult, setHeisenbergResult] = useState<string>('')
+  const [matrixResult, setMatrixResult] = useState<string>('')
+
+  const calculateHeisenbergUncertainty = () => {
+    if (typeof deltaX === 'number' && typeof deltaP === 'number') {
+      const hBar = 1.0545718e-34 // Reduced Planck's constant in Js
+      const result = deltaX * deltaP
+      setHeisenbergResult(result < hBar / 2 ? `Result: ${result} < hBar/2` : `Result: ${result} >= hBar/2`)
+    } else {
+      setHeisenbergResult('Please enter valid numbers for Δx and Δp')
+    }
+  }
+
+  const multiplyMatrices = () => {
+    try {
+      const a = JSON.parse(matrixA)
+      const b = JSON.parse(matrixB)
+
+      if (!Array.isArray(a) || !Array.isArray(b)) {
+        setMatrixResult('Please enter valid matrices')
+        return
+      }
+
+      const rowsA = a.length
+      const colsA = a[0].length
+      const rowsB = b.length
+      const colsB = b[0].length
+
+      if (colsA !== rowsB) {
+        setMatrixResult('Matrix A columns must be equal to Matrix B rows')
+        return
+      }
+
+      const result: number[][] = Array.from({ length: rowsA }, () => Array(colsB).fill(0))
+
+      for (let i = 0; i < rowsA; i++) {
+        for (let j = 0; j < colsB; j++) {
+          for (let k = 0; k < colsA; k++) {
+            result[i][j] += a[i][k] * b[k][j]
+          }
+        }
+      }
+
+      setMatrixResult(JSON.stringify(result))
+    } catch (error) {
+      setMatrixResult('Please enter valid JSON matrices')
+    }
+  }
+
+  return (
+    <div className="p-4 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Quantum Mechanics Calculator</h1>
+
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Heisenberg Uncertainty Principle</h2>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Δx (position uncertainty)</label>
+            <input
+              type="number"
+              value={deltaX}
+              onChange={(e) => setDeltaX(e.target.value === '' ? '' : parseFloat(e.target.value))}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Δp (momentum uncertainty)</label>
+            <input
+              type="number"
+              value={deltaP}
+              onChange={(e) => setDeltaP(e.target.value === '' ? '' : parseFloat(e.target.value))}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        </div>
+        <button
+          onClick={calculateHeisenbergUncertainty}
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
+          Calculate
+        </button>
+        {heisenbergResult && <div className="mt-2 text-gray-700">{heisenbergResult}</div>}
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Matrix Multiplication</h2>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Matrix A (JSON format)</label>
+            <textarea
+              value={matrixA}
+              onChange={(e) => setMatrixA(e.target.value)}
+              className="w-full p-2 border rounded h-32"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Matrix B (JSON format)</label>
+            <textarea
+              value={matrixB}
+              onChange={(e) => setMatrixB(e.target.value)}
+              className="w-full p-2 border rounded h-32"
+            />
+          </div>
+        </div>
+        <button
+          onClick={multiplyMatrices}
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+        >
+          Calculate
+        </button>
+        {matrixResult && <div className="mt-2 text-gray-700">{matrixResult}</div>}
+      </div>
+    </div>
+  )
+}
